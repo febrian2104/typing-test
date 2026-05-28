@@ -1,6 +1,7 @@
 "use client";
 
 import { Moon, RotateCcw, Sun } from "lucide-react";
+import Link from "next/link";
 import {
   Fragment,
   useEffect,
@@ -279,6 +280,13 @@ export function TypingTest({
         cursor: "bg-purple-300",
         resultBorder: "border-purple-400/30",
         resultGrid: "text-violet-50/65",
+        footerBorder: "border-purple-400/20",
+        footerText: "text-violet-100/55",
+        footerLink:
+          "text-purple-200 underline-offset-4 hover:text-purple-100 hover:underline focus:outline-none focus:ring-2 focus:ring-purple-400/70",
+        brandText: "text-purple-300",
+        brandBadge: "text-white shadow-sm shadow-purple-950/20",
+        brandMuted: "text-violet-100/55",
       }
     : {
         page: "bg-[#eefaff] text-slate-950",
@@ -302,6 +310,13 @@ export function TypingTest({
         cursor: "bg-purple-700",
         resultBorder: "border-purple-300/70",
         resultGrid: "text-slate-600",
+        footerBorder: "border-purple-300/60",
+        footerText: "text-slate-500",
+        footerLink:
+          "text-purple-700 underline-offset-4 hover:text-purple-900 hover:underline focus:outline-none focus:ring-2 focus:ring-purple-400/60",
+        brandText: "text-purple-700",
+        brandBadge: "bg-purple-600 text-white shadow-sm shadow-purple-300/40",
+        brandMuted: "text-slate-500",
       };
 
   useEffect(() => {
@@ -584,6 +599,27 @@ export function TypingTest({
   return (
     <section className={`min-h-screen px-4 py-10 transition-colors duration-300 sm:px-6 lg:px-8 ${theme.page}`}>
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
+        <nav
+          aria-label="Navigasi utama"
+          className={`flex items-center justify-between border-b pb-5 transition-colors duration-300 ${theme.headerBorder}`}
+        >
+          <Link
+            aria-label="WPM Lab"
+            className="inline-flex items-center gap-2 rounded-sm focus:outline-none focus:ring-2 focus:ring-purple-400/70"
+            href="/"
+          >
+            <span className={`text-2xl font-black uppercase tracking-normal ${theme.brandText}`}>
+              WPM
+            </span>
+            <span className={`rounded-md px-2 py-1 text-2xl font-black uppercase tracking-normal ${theme.brandBadge}`}>
+              Lab
+            </span>
+          </Link>
+          <span className={`hidden text-sm font-medium sm:inline ${theme.brandMuted}`}>
+            Typing speed test
+          </span>
+        </nav>
+
         <header className={`border-b pb-6 transition-colors duration-300 ${theme.headerBorder}`}>
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div className={`inline-flex h-11 w-fit items-center gap-2 rounded-md px-1 text-sm font-medium ${theme.languageText}`}>
@@ -713,6 +749,26 @@ export function TypingTest({
             </div>
           )}
         </main>
+
+        <footer
+          className={`border-t pt-6 text-sm transition-colors duration-300 ${theme.footerBorder} ${theme.footerText}`}
+        >
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p>WPM Lab</p>
+            <p>
+              by{" "}
+              <a
+                aria-label="Kunjungi website devbyte"
+                className={`rounded-sm ${theme.footerLink}`}
+                href="https://devbyte-mu.vercel.app"
+                rel="author"
+                title="https://devbyte-mu.vercel.app"
+              >
+                devbyte
+              </a>
+            </p>
+          </div>
+        </footer>
       </div>
     </section>
   );
