@@ -21,9 +21,9 @@ WPM.
 
 ## Tech Stack
 
-- Next.js
-- TypeScript
-- Tailwind CSS
-- React
-- Vitest
-- Lucide React
+- Next.js -> framework utama untuk membangun aplikasi web.
+- React -> library untuk membuat UI dan interaksi typing test.
+- TypeScript -> membantu membuat kode lebih aman dengan tipe data.
+- Tailwind CSS -> untuk styling dan responsive layout.
+- Vitest -> untuk unit test, terutama pada logic perhitungan WPM.
+- Lucide React -> untuk ikon pada tombol dan kontrol UI.
