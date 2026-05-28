@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KPM Lab",
-  description: "Typing test untuk mengukur kata per menit dan akurasi.",
+  title: "WPM Lab",
+  description: "Typing test untuk mengukur WPM dan akurasi.",
 };
 
 export default function RootLayout({

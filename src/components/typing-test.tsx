@@ -50,11 +50,11 @@ type TypingTestProps = {
 type TypingStatsSample = {
   accuracy: number;
   errors: number;
-  kpm: number;
+  wpm: number;
   modifications: number;
   second: number;
 };
-type ChartMetric = "error" | "kpm" | "modification";
+type ChartMetric = "error" | "wpm" | "modification";
 
 function subscribeSystemTheme(onStoreChange: () => void) {
   if (typeof window === "undefined") {
@@ -122,7 +122,7 @@ function upsertStatsSample(
     if (
       lastSample.accuracy === nextSample.accuracy &&
       lastSample.errors === nextSample.errors &&
-      lastSample.kpm === nextSample.kpm &&
+      lastSample.wpm === nextSample.wpm &&
       lastSample.modifications === nextSample.modifications
     ) {
       return samples;
@@ -159,7 +159,7 @@ function getLinePath(
     .map((sample, index) => {
       const command = index === 0 ? "M" : "L";
 
-      return `${command} ${getChartX(sample.second, duration).toFixed(2)} ${getChartY(sample.kpm, maxValue).toFixed(2)}`;
+      return `${command} ${getChartX(sample.second, duration).toFixed(2)} ${getChartY(sample.wpm, maxValue).toFixed(2)}`;
     })
     .join(" ");
 }
@@ -230,7 +230,7 @@ export function TypingTest({
           {
             accuracy: score.accuracy,
             errors: typingErrors,
-            kpm: score.kpm,
+            wpm: score.wpm,
             modifications: typingModifications,
             second: duration,
           },
@@ -318,7 +318,7 @@ export function TypingTest({
         upsertStatsSample(samples, {
           accuracy: score.accuracy,
           errors: typingErrors,
-          kpm: score.kpm,
+          wpm: score.wpm,
           modifications: typingModifications,
           second: sampleSecond,
         }),
@@ -329,7 +329,7 @@ export function TypingTest({
   }, [
     sampleSecond,
     score.accuracy,
-    score.kpm,
+    score.wpm,
     status,
     typingErrors,
     typingModifications,
@@ -700,7 +700,7 @@ export function TypingTest({
 
               <div className={`mt-8 min-h-24 border-t pt-6 transition-colors duration-300 ${theme.resultBorder}`}>
                 <div className={`grid max-w-xl grid-cols-3 gap-5 text-sm ${theme.resultGrid}`}>
-                  <ResultStat isDarkMode={isDarkMode} label="KPM" value={score.kpm} muted />
+                  <ResultStat isDarkMode={isDarkMode} label="WPM" value={score.wpm} muted />
                   <ResultStat
                     isDarkMode={isDarkMode}
                     label="Akurasi"
@@ -772,31 +772,31 @@ function TypingResultChart({
     ({
       accuracy: score.accuracy,
       errors,
-      kpm: score.kpm,
+      wpm: score.wpm,
       modifications,
       second: duration,
     } satisfies TypingStatsSample);
   const firstSample = samples[0] ?? baseSample;
   const chartSamples = [
     ...(firstSample.second > 0
-      ? [{ ...firstSample, kpm: 0, second: 0 }]
+      ? [{ ...firstSample, wpm: 0, second: 0 }]
       : []),
     ...samples,
     ...(baseSample.second < duration ? [{ ...baseSample, second: duration }] : []),
   ];
-  const maxKpm = Math.max(
+  const maxWpm = Math.max(
     80,
     Math.ceil(
-      Math.max(score.rawKpm, ...chartSamples.map((sample) => sample.kpm)) / 10,
+      Math.max(score.rawWpm, ...chartSamples.map((sample) => sample.wpm)) / 10,
     ) * 10,
   );
-  const linePath = getLinePath(chartSamples, duration, maxKpm);
+  const linePath = getLinePath(chartSamples, duration, maxWpm);
   const chartBottom = CHART_HEIGHT - CHART_PADDING.bottom;
   const firstX = getChartX(chartSamples[0]?.second ?? 0, duration);
   const lastX = getChartX(chartSamples.at(-1)?.second ?? duration, duration);
   const areaPath = `${linePath} L ${lastX.toFixed(2)} ${chartBottom} L ${firstX.toFixed(2)} ${chartBottom} Z`;
   const yTicks = Array.from({ length: 5 }, (_, index) =>
-    Math.round((maxKpm / 4) * index),
+    Math.round((maxWpm / 4) * index),
   ).reverse();
   const xTicks = Array.from({ length: 7 }, (_, index) =>
     Math.round((duration / 6) * index),
@@ -808,7 +808,7 @@ function TypingResultChart({
     (sample, index) =>
       sample.modifications > (chartSamples[index - 1]?.modifications ?? 0),
   );
-  const isKpmFocused = focusedMetric === null || focusedMetric === "kpm";
+  const isWpmFocused = focusedMetric === null || focusedMetric === "wpm";
   const isErrorFocused = focusedMetric === null || focusedMetric === "error";
   const isModificationFocused =
     focusedMetric === null || focusedMetric === "modification";
@@ -816,7 +816,7 @@ function TypingResultChart({
     ? {
         axis: "#7dd3fc66",
         grid: "#7dd3fc24",
-        kpm: "#a855f7",
+        wpm: "#a855f7",
         label: "#ccfbf1",
         muted: "#99f6e480",
         surface: "#101412",
@@ -824,7 +824,7 @@ function TypingResultChart({
     : {
         axis: "#67e8f9",
         grid: "#94a3b833",
-        kpm: "#9333ea",
+        wpm: "#9333ea",
         label: "#0f172a",
         muted: "#64748b",
         surface: "#e8f7fb",
@@ -836,10 +836,10 @@ function TypingResultChart({
         <dl className="grid gap-8 sm:grid-cols-2">
           <div>
             <dt className={`text-xs font-bold uppercase tracking-normal ${isDarkMode ? "text-teal-100/55" : "text-slate-500"}`}>
-              Kata per menit
+              Word per minute
             </dt>
             <dd className="mt-1 text-5xl font-bold leading-none text-purple-500">
-              {score.kpm} kpm
+              {score.wpm} wpm
             </dd>
           </div>
           <div>
@@ -860,11 +860,11 @@ function TypingResultChart({
       <div className={`mt-7 border-t pt-4 ${isDarkMode ? "border-teal-300/25" : "border-cyan-300/70"}`}>
         <div className="mb-3 flex flex-wrap items-center justify-center gap-4 text-sm">
           <ChartLegend
-            active={focusedMetric === "kpm"}
+            active={focusedMetric === "wpm"}
             colorClassName="bg-purple-600"
-            isDimmed={focusedMetric !== null && focusedMetric !== "kpm"}
-            label="KPM"
-            metric="kpm"
+            isDimmed={focusedMetric !== null && focusedMetric !== "wpm"}
+            label="WPM"
+            metric="wpm"
             onClearFocus={() => setFocusedMetric(null)}
             onFocusMetric={setFocusedMetric}
           />
@@ -897,9 +897,9 @@ function TypingResultChart({
           viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
         >
           <defs>
-            <linearGradient id="kpm-area-gradient" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor={palette.kpm} stopOpacity="0.45" />
-              <stop offset="100%" stopColor={palette.kpm} stopOpacity="0.03" />
+            <linearGradient id="wpm-area-gradient" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor={palette.wpm} stopOpacity="0.45" />
+              <stop offset="100%" stopColor={palette.wpm} stopOpacity="0.03" />
             </linearGradient>
           </defs>
 
@@ -912,7 +912,7 @@ function TypingResultChart({
           />
 
           {yTicks.map((tick) => {
-            const y = getChartY(tick, maxKpm);
+            const y = getChartY(tick, maxWpm);
 
             return (
               <g key={tick}>
@@ -945,7 +945,7 @@ function TypingResultChart({
             x={CHART_PADDING.left}
             y="14"
           >
-            KATA PER MENIT
+            WORD PER MINUTE
           </text>
 
           <text
@@ -957,28 +957,28 @@ function TypingResultChart({
             x="26"
             y={CHART_HEIGHT / 2}
           >
-            KPM
+            WPM
           </text>
 
           <path
             d={areaPath}
-            fill="url(#kpm-area-gradient)"
-            opacity={isKpmFocused ? 1 : 0.16}
+            fill="url(#wpm-area-gradient)"
+            opacity={isWpmFocused ? 1 : 0.16}
           />
           <path
             d={linePath}
             fill="none"
-            opacity={isKpmFocused ? 1 : 0.2}
-            stroke={palette.kpm}
+            opacity={isWpmFocused ? 1 : 0.2}
+            stroke={palette.wpm}
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeWidth={focusedMetric === "kpm" ? 5 : 3}
+            strokeWidth={focusedMetric === "wpm" ? 5 : 3}
           />
 
           {errorPoints.map((sample) => (
             <circle
               cx={getChartX(sample.second, duration)}
-              cy={getChartY(Math.max(sample.kpm, maxKpm * 0.2), maxKpm)}
+              cy={getChartY(Math.max(sample.wpm, maxWpm * 0.2), maxWpm)}
               fill="#f43f5e"
               key={`error-${sample.second}-${sample.errors}`}
               opacity={isErrorFocused ? 1 : 0.2}
@@ -989,7 +989,7 @@ function TypingResultChart({
           {modificationPoints.map((sample) => (
             <circle
               cx={getChartX(sample.second, duration)}
-              cy={getChartY(Math.max(sample.kpm, maxKpm * 0.15), maxKpm)}
+              cy={getChartY(Math.max(sample.wpm, maxWpm * 0.15), maxWpm)}
               fill="#f97316"
               key={`modification-${sample.second}-${sample.modifications}`}
               opacity={isModificationFocused ? 1 : 0.2}
@@ -1060,7 +1060,7 @@ function TypingResultChart({
           value={score.correctWords}
           muted
         />
-        <ResultStat isDarkMode={isDarkMode} label="Raw" value={score.rawKpm} muted />
+        <ResultStat isDarkMode={isDarkMode} label="Raw" value={score.rawWpm} muted />
       </dl>
     </section>
   );

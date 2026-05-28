@@ -6,10 +6,12 @@ export type ScoreTypingAttemptInput = {
 
 export type TypingScore = {
   attemptedWords: number;
+  correctCharacters: number;
   correctWords: number;
+  typedCharacters: number;
   wrongWords: number;
-  kpm: number;
-  rawKpm: number;
+  rawWpm: number;
+  wpm: number;
   accuracy: number;
 };
 
@@ -26,17 +28,32 @@ export function scoreTypingAttempt({
     (word, index) => word === targetWords[index],
   ).length;
   const wrongWords = attemptedWords - correctWords;
+  const typedCharacters = normalizedTypedWords.join(" ").length;
+  const correctCharacters = normalizedTypedWords.reduce(
+    (totalCharacters, typedWord, index) => {
+      if (typedWord !== targetWords[index]) {
+        return totalCharacters;
+      }
+
+      const separatorCharacter = index < normalizedTypedWords.length - 1 ? 1 : 0;
+
+      return totalCharacters + typedWord.length + separatorCharacter;
+    },
+    0,
+  );
   const durationMinutes = Math.max(durationSeconds, 1) / 60;
 
   return {
     attemptedWords,
+    correctCharacters,
     correctWords,
+    typedCharacters,
     wrongWords,
-    kpm: Math.round(correctWords / durationMinutes),
-    rawKpm: Math.round(attemptedWords / durationMinutes),
+    rawWpm: Math.round(typedCharacters / 5 / durationMinutes),
+    wpm: Math.round(correctCharacters / 5 / durationMinutes),
     accuracy:
-      attemptedWords === 0
+      typedCharacters === 0
         ? 0
-        : Math.round((correctWords / attemptedWords) * 100),
+        : Math.round((correctCharacters / typedCharacters) * 100),
   };
 }

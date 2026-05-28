@@ -1,38 +1,29 @@
-# KPM Lab
+# WPM Lab
 
-Project web typing test untuk mengukur kata per menit, akurasi, kata benar,
-dan raw KPM. Fondasi awal memakai Next.js App Router, TypeScript, Tailwind CSS,
-dan Vitest.
+WPM Lab adalah aplikasi typing test untuk mengukur kecepatan dan akurasi
+mengetik. Project ini dibuat sebagai latihan membangun aplikasi web interaktif
+dengan pengalaman mengetik yang responsif, pilihan bahasa Indonesia dan Inggris,
+mode terang/gelap, serta tampilan hasil berupa grafik statistik.
 
-## Getting Started
+Aplikasi ini menghitung WPM menggunakan standar umum typing test, yaitu jumlah
+karakter benar dibagi lima lalu disesuaikan dengan durasi test. Selain WPM,
+hasil akhir juga menampilkan akurasi, error, modifikasi saat mengetik, dan raw
+WPM.
 
-Jalankan development server:
+## Fitur
 
-```bash
-pnpm dev
-```
+- Typing test dengan pilihan durasi 1, 3, dan 5 menit.
+- Pilihan bahasa Indonesia dan Inggris.
+- Cursor typing yang mengikuti huruf aktif.
+- Penanda warna untuk huruf benar dan salah.
+- Mode terang/gelap yang mengikuti preferensi perangkat.
+- Grafik hasil untuk WPM, error, dan modifikasi.
 
-Buka [http://localhost:3000](http://localhost:3000).
+## Tech Stack
 
-## Scripts
-
-```bash
-pnpm dev       # local development
-pnpm lint      # ESLint
-pnpm test:run  # unit test sekali jalan
-pnpm build     # production build
-```
-
-## Struktur Awal
-
-- `src/components/typing-test.tsx` - UI dan interaksi typing test.
-- `src/lib/scoring.ts` - perhitungan KPM, raw KPM, dan akurasi.
-- `src/lib/word-generator.ts` - generator antrean kata.
-- `src/data/words-id.ts` - bank kata Indonesia untuk MVP.
-
-## Roadmap Dekat
-
-- Simpan hasil test ke database.
-- Tambahkan auth user.
-- Buat leaderboard berdasarkan durasi dan bahasa.
-- Tambahkan profile berisi riwayat dan best score.
+- Next.js
+- TypeScript
+- Tailwind CSS
+- React
+- Vitest
+- Lucide React
