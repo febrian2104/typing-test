@@ -205,8 +205,10 @@ export function TypingTest({
   const [typingErrors, setTypingErrors] = useState(0);
   const [typingModifications, setTypingModifications] = useState(0);
   const [statsSamples, setStatsSamples] = useState<TypingStatsSample[]>([]);
+  const [needsTypingFocus, setNeedsTypingFocus] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const wordRefs = useRef(new Map<number, HTMLSpanElement>());
+  const hasLeftPageRef = useRef(false);
   const systemThemeMode = useSyncExternalStore(
     subscribeSystemTheme,
     getSystemThemeSnapshot,
@@ -284,6 +286,9 @@ export function TypingTest({
         footerText: "text-violet-100/55",
         footerLink:
           "text-purple-200 underline-offset-4 hover:text-purple-100 hover:underline focus:outline-none focus:ring-2 focus:ring-purple-400/70",
+        focusOverlay: "bg-[#100f18]/70 text-violet-50",
+        focusPrompt:
+          "bg-purple-500/15 text-purple-100 shadow-purple-950/20 hover:bg-purple-500/25",
         brandText: "text-purple-300",
         brandBadge: "text-white shadow-sm shadow-purple-950/20",
         brandMuted: "text-violet-100/55",
@@ -314,6 +319,9 @@ export function TypingTest({
         footerText: "text-slate-500",
         footerLink:
           "text-purple-700 underline-offset-4 hover:text-purple-900 hover:underline focus:outline-none focus:ring-2 focus:ring-purple-400/60",
+        focusOverlay: "bg-[#eefaff]/75 text-slate-950",
+        focusPrompt:
+          "bg-white/80 text-purple-800 shadow-purple-100/80 hover:bg-purple-50",
         brandText: "text-purple-700",
         brandBadge: "bg-purple-600 text-white shadow-sm shadow-purple-300/40",
         brandMuted: "text-slate-500",
@@ -330,6 +338,8 @@ export function TypingTest({
       setNow(timestamp);
 
       if ((timestamp - startedAt) / 1000 >= duration) {
+        hasLeftPageRef.current = false;
+        setNeedsTypingFocus(false);
         setStatus("finished");
         window.clearInterval(intervalId);
       }
@@ -364,6 +374,45 @@ export function TypingTest({
     typingErrors,
     typingModifications,
   ]);
+
+  useEffect(() => {
+    if (status === "finished") {
+      hasLeftPageRef.current = false;
+      return;
+    }
+
+    function markPageAsLeft() {
+      hasLeftPageRef.current = true;
+    }
+
+    function requestFocusBeforeTyping() {
+      if (
+        document.visibilityState !== "hidden" &&
+        hasLeftPageRef.current
+      ) {
+        setNeedsTypingFocus(true);
+      }
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "hidden") {
+        markPageAsLeft();
+        return;
+      }
+
+      requestFocusBeforeTyping();
+    }
+
+    window.addEventListener("blur", markPageAsLeft);
+    window.addEventListener("focus", requestFocusBeforeTyping);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("blur", markPageAsLeft);
+      window.removeEventListener("focus", requestFocusBeforeTyping);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [status]);
 
   useEffect(() => {
     const frameId = window.requestAnimationFrame(() => {
@@ -401,7 +450,15 @@ export function TypingTest({
   }, [currentInput, currentWordIndex, visibleStart, wordQueue.length]);
 
   function focusInput() {
+    if (status !== "finished" && !needsTypingFocus) {
+      inputRef.current?.focus({ preventScroll: true });
+    }
+  }
+
+  function resumeTyping() {
     if (status !== "finished") {
+      hasLeftPageRef.current = false;
+      setNeedsTypingFocus(false);
       inputRef.current?.focus({ preventScroll: true });
     }
   }
@@ -430,6 +487,8 @@ export function TypingTest({
     setTypingErrors(0);
     setTypingModifications(0);
     setStatsSamples([]);
+    setNeedsTypingFocus(false);
+    hasLeftPageRef.current = false;
     requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
   }
 
@@ -444,13 +503,15 @@ export function TypingTest({
     setTypingErrors(0);
     setTypingModifications(0);
     setStatsSamples([]);
+    setNeedsTypingFocus(false);
+    hasLeftPageRef.current = false;
     requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
   }
 
   function submitCurrentWord() {
     const word = currentInput.trim();
 
-    if (!word || status === "finished") {
+    if (!word || status === "finished" || needsTypingFocus) {
       return;
     }
 
@@ -471,7 +532,7 @@ export function TypingTest({
   }
 
   function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
-    if (status === "finished") {
+    if (status === "finished" || needsTypingFocus) {
       return;
     }
 
@@ -502,6 +563,11 @@ export function TypingTest({
   }
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (needsTypingFocus) {
+      event.preventDefault();
+      return;
+    }
+
     if (event.key === " " || event.key === "Enter") {
       event.preventDefault();
       submitCurrentWord();
@@ -698,7 +764,7 @@ export function TypingTest({
 
         <main
           className="min-w-0 outline-none"
-          onClick={focusInput}
+          onClick={resumeTyping}
           onFocus={focusInput}
         >
           <input
@@ -728,24 +794,45 @@ export function TypingTest({
               score={score}
             />
           ) : (
-            <div className={`flex h-[290px] min-w-0 flex-wrap content-start gap-x-3 gap-y-4 overflow-hidden font-serif text-3xl leading-relaxed sm:text-4xl ${theme.wordArea}`}>
-              {visibleWords.map((word, index) => (
-                <span
-                  className={getWordClassName(index)}
-                  key={`${visibleStart + index}-${word}`}
-                  ref={(element) => {
-                    const wordIndex = visibleStart + index;
+            <div className="relative min-w-0">
+              <div
+                aria-hidden={needsTypingFocus}
+                className={`flex h-[290px] min-w-0 flex-wrap content-start gap-x-3 gap-y-4 overflow-hidden font-serif text-3xl leading-relaxed transition duration-200 sm:text-4xl ${
+                  needsTypingFocus ? "blur-[3px] opacity-45" : "blur-0 opacity-100"
+                } ${theme.wordArea}`}
+              >
+                {visibleWords.map((word, index) => (
+                  <span
+                    className={getWordClassName(index)}
+                    key={`${visibleStart + index}-${word}`}
+                    ref={(element) => {
+                      const wordIndex = visibleStart + index;
 
-                    if (element) {
-                      wordRefs.current.set(wordIndex, element);
-                    } else {
-                      wordRefs.current.delete(wordIndex);
-                    }
-                  }}
+                      if (element) {
+                        wordRefs.current.set(wordIndex, element);
+                      } else {
+                        wordRefs.current.delete(wordIndex);
+                      }
+                    }}
+                  >
+                    {renderWord(word, index)}
+                  </span>
+                ))}
+              </div>
+
+              {needsTypingFocus ? (
+                <button
+                  className={`absolute inset-0 flex items-center justify-center rounded-md backdrop-blur-[1px] transition ${theme.focusOverlay}`}
+                  onClick={resumeTyping}
+                  type="button"
                 >
-                  {renderWord(word, index)}
-                </span>
-              ))}
+                  <span
+                    className={`rounded-md px-4 py-2 text-sm font-semibold shadow-sm transition ${theme.focusPrompt}`}
+                  >
+                    Klik di sini untuk melanjutkan
+                  </span>
+                </button>
+              ) : null}
             </div>
           )}
         </main>
